@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -11,14 +12,16 @@ import (
 )
 
 const (
-	kafkaConn    = "localhost:9092"
-	topic        = "state-metrics"
-	start_offset = 0
-	partition    = 0
+	kafkaConn = "localhost:9092"
+	topic     = "state-metrics"
 )
 
 func main() {
-	partitionConsumer, err := initPartitionConsumer(topic, partition, start_offset)
+	offset := flag.Int64("offset", 0, "Offset to start consuming")
+	partition := flag.Int("partition", 0, "Partition to consume")
+	flag.Parse()
+
+	partitionConsumer, err := initPartitionConsumer(topic, int32(*partition), *offset)
 	if err != nil {
 		fmt.Println("Error initPartitionConsumer: ", err)
 		os.Exit(1)
@@ -31,7 +34,7 @@ func main() {
 			bytes := msg.Value
 			stateMetrics := &state.StateMetrics{}
 			if err := proto.Unmarshal(bytes, stateMetrics); err != nil {
-				fmt.Println("Error unmarshal: ", err)
+				fmt.Println("Error Unmarshal: ", err)
 			}
 			fmt.Println(stateMetrics, time.Unix(int64(stateMetrics.GetTime()/1e9), 0))
 		}

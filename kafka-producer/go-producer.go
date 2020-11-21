@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -23,10 +24,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	var count = 0
+	r := rand.New(rand.NewSource(42))
+
 	for {
 		now := time.Now().UnixNano()
-		temperature := float32(25.0)
+		temperature := 25.0 + 10.0*r.Float32()
 
 		stateMetrics := state.StateMetrics{
 			Time:        &now,
@@ -34,11 +36,10 @@ func main() {
 		}
 		bytes, err := proto.Marshal(&stateMetrics)
 		if err != nil {
-			//
+			fmt.Println("Error Marshal: ", err.Error())
 		}
 		publish(bytes, producer)
 		time.Sleep(1 * time.Second)
-		count++
 	}
 }
 
